@@ -1,8 +1,6 @@
-
-
 services:
- app:
-    build: 
+  app:
+    build:
       context: .
       args:
         - DEV=true
@@ -12,3 +10,20 @@ services:
       - ./app:/app
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=recipe
+      - DB_USER=shitman
+      - DB_PASS=shitman
+    depends_on:
+      - db
+  db:
+    image: postgres:alpine3.23
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=recipe
+      - POSTGRES_USER=shitman
+      - POSTGRES_PASSWORD=shitman
+volumes:
+  dev-db-data:
