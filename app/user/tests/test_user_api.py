@@ -10,6 +10,7 @@ from rest_framework import status
 
 CREATE_USER_URL = reverse("user:create")
 TOKEN_URL = reverse("user:token")
+ME_URL = reverse("user:me")
 
 
 def create_user(**kwargs):
@@ -50,15 +51,13 @@ class PublicUserApiTests(TestCase):
 
     def test_password_too_short(self):
         """Test error returned if password too short(less than 5 chars)"""
-        payload = {
-            "email": "test@example.com",
-            "password": "shit",
-            "name": "shitman"
-            }
+        payload = {"email": "test@example.com", "password": "shit", "name": "shitman"} # noqa
         res = self.client.post(CREATE_USER_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-        user_exists = get_user_model().objects.filter(email=payload["email"]).exists() # noqa
+        user_exists = (
+            get_user_model().objects.filter(email=payload["email"]).exists()
+        )  # noqa
 
         self.assertFalse(user_exists)
 
@@ -72,10 +71,7 @@ class PublicUserApiTests(TestCase):
 
         create_user(**user_details)
 
-        payload = {
-            "email": user_details["email"],
-            "password": user_details["password"]
-            }
+        payload = {"email": user_details["email"], "password": user_details["password"]} # noqa
         res = self.client.post(TOKEN_URL, payload)
 
         self.assertIn("token", res.data)
@@ -83,11 +79,7 @@ class PublicUserApiTests(TestCase):
 
     def test_create_token_bad_credentials(self):
         """Test returns error if credentials are wrong"""
-        create_user(
-            email="shitman@example.com",
-            password="Shitman1234",
-            name="shitman"
-            )
+        create_user(email="shitman@example.com", password="Shitman1234", name="shitman") # noqa
 
         payload = {"email": "shitman@example.com", "password": "badpass"}
 
@@ -103,3 +95,49 @@ class PublicUserApiTests(TestCase):
 
         self.assertNotIn("token", res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_retrieve_user_unauthorized(self):
+        """Test authentication is required for users"""
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateUserApiTests(TestCase):
+    """Test API requests that require authentication"""
+
+    def setUp(self):
+        self.user = create_user(
+            email="shitman@example.com",
+            password="Shitman2121!",
+            name="Shitman"
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_retrieve_profile_success(self):
+        """Test retrieving profile for logged user"""
+
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK) # noqa
+        self.assertEqual(res.data, {"name": self.user.name, "email": self.user.email}) # noqa
+
+    def test_post_me_not_allowed(self):
+        """Test POST method for me endpoint is not allowed"""
+        res = self.client.post(ME_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_user_profile(self):
+        """Test updating the user profile for the user"""
+
+        payload = {"name": "shitman2", "password": "newpass1234"}
+
+        res = self.client.patch(ME_URL, payload)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.name, payload["name"])
+        self.assertTrue(self.user.check_password(payload["password"]))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
