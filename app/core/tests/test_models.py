@@ -1,5 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from decimal import Decimal
+from core import models
 
 
 class ModelTests(TestCase):
@@ -7,7 +9,9 @@ class ModelTests(TestCase):
     def test_create_user_successful(self):
         email = "test@example.com"
         password = "Test2121!"
-        user = get_user_model().objects.create_user(email=email, password=password) # noqa
+        user = get_user_model().objects.create_user(
+            email=email, password=password
+        )  # noqa
         self.assertEqual(user.email, email)
         self.assertTrue(user.check_password(password))
 
@@ -20,7 +24,9 @@ class ModelTests(TestCase):
             ["test4@example.COM", "test4@example.com"],
         ]
         for email, expected in sample_emails:
-            user = get_user_model().objects.create_user(email=email, password="test") # noqa
+            user = get_user_model().objects.create_user(
+                email=email, password="test"
+            )  # noqa
             self.assertEqual(user.email, expected)
 
     def test_new_user_without_user_error(self):
@@ -35,3 +41,17 @@ class ModelTests(TestCase):
         )
         self.assertTrue(user.is_staff)
         self.assertTrue(user.is_superuser)
+
+    def test_create_recipe(self):
+        """Test creating a recipe"""
+        user = get_user_model().objects.create_user(
+            email="shitman@gmail.com", password="shitman"
+        )
+        recipe = models.Recipe.objects.create(
+            user=user,
+            title="sample name",
+            time_minutes=5,
+            price=Decimal("5.50"),
+            description="A simple meal",
+        )
+        self.assertEqual(str(recipe), recipe.title)
