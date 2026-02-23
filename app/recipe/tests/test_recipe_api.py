@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from core.models import Recipe
+from core.models import Recipe, Tag
 from recipe.serializers import RecipeSerializer, RecipeDetailSerializer
 
 RECIPES_URL = reverse("recipe:recipe-list")
@@ -183,3 +183,50 @@ class PrivateRecipeApiTests(TestCase):
             res.status_code, status.HTTP_200_OK
         )  # why does it return 200 ?!!
         self.assertEqual(recipe.user, self.user)
+
+    def test_recipe_with_new_tags(self):
+        """Test creating a recipe with new tags"""
+
+        payload = {
+            "title": "A sample",
+            "time_minutes": 10,
+            "price": Decimal("9.99"),
+            "tags": [{"name": "desert"}, {"name": "Thao"}],
+        }
+
+        res = self.client.post(RECIPES_URL, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        recipes = Recipe.objects.filter(user=self.user)
+        self.assertEqual(recipes.count(), 1)
+        recipe = recipes[0]
+        self.assertEqual(recipe.tags.count(), 2)
+        for tag in payload["tags"]:
+            exists = recipe.tags.filter(name=tag["name"], user=self.user).exists() # noqa
+            self.assertTrue(exists)
+
+    def test_creating_recipe_with_existing_tags(self):
+        """Test creting recipe with existing tags"""
+        tag_sample = Tag.objects.create(name="sample", user=self.user)
+        payload = {
+            "title": "sample recipe",
+            "time_minutes": 10,
+            "price": Decimal("9.89"),
+            "tags": [{"name": "sample"}, {"name": "desert"}],
+        }
+
+        res = self.client.post(RECIPES_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        recipes = Recipe.objects.filter(user=self.user)
+        self.assertEqual(recipes.count(), 1)
+
+        recipe = recipes[0]
+        self.assertEqual(recipe.tags.count(), 2)
+
+        self.assertIn(tag_sample, recipe.tags.all())
+
+        for tag in payload["tags"]:
+            exists = recipe.tags.filter(user=self.user, name=tag["name"]).exists() # noqa
+            self.assertTrue(exists)
