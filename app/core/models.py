@@ -38,7 +38,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Recipe(models.Model):
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name="recipes",
+        settings.AUTH_USER_MODEL,
+        related_name="recipes",
         on_delete=models.CASCADE
     )
     title = models.CharField(max_length=255)
@@ -46,6 +47,17 @@ class Recipe(models.Model):
     time_minutes = models.IntegerField()
     price = models.DecimalField(decimal_places=2, max_digits=5)
     link = models.CharField(blank=True, max_length=250)
+    tags = models.ManyToManyField("Tag")
 
     def __str__(self):
         return self.title
+
+
+class Tag(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="tags", on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
