@@ -121,7 +121,9 @@ class PrivateRecipeApiTests(TestCase):
         """Test partial update of a recipe"""
 
         original_link = "www.example.com"
-        recipe = create_recipe(user=self.user, title="sample bitch", link=original_link) # noqa
+        recipe = create_recipe(
+            user=self.user, title="sample bitch", link=original_link
+        )  # noqa
         payload = {"title": "Haji inn car mikone?"}
         url = detail_url(recipe.id)
         res = self.client.patch(url, payload)

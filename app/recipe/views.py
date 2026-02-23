@@ -6,10 +6,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from core.models import Recipe, Tag
-from .serializers import (
-    RecipeSerializer,
-    RecipeDetailSerializer,
-    TagSerializer)
+from .serializers import RecipeSerializer, RecipeDetailSerializer, TagSerializer # noqa
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -32,7 +29,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class TagViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class TagViewSet(
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     """View for managing tags"""
 
     serializer_class = TagSerializer
