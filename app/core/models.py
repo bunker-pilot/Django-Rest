@@ -38,9 +38,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Recipe(models.Model):
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="recipes",
-        on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL, related_name="recipes", on_delete=models.CASCADE
     )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -49,14 +47,13 @@ class Recipe(models.Model):
     link = models.CharField(blank=True, max_length=250)
     tags = models.ManyToManyField("Tag")
     ingredients = models.ManyToManyField("Ingredient")
+
     def __str__(self):
         return self.title
 
 
 class Tag(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -64,10 +61,10 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    name = models.CharField( max_length=250)
+    name = models.CharField(max_length=250)
 
     def __str__(self):
         return self.name
