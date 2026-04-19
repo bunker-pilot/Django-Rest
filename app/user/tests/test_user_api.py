@@ -51,7 +51,11 @@ class PublicUserApiTests(TestCase):
 
     def test_password_too_short(self):
         """Test error returned if password too short(less than 5 chars)"""
-        payload = {"email": "test@example.com", "password": "shit", "name": "shitman"} # noqa
+        payload = {
+            "email": "test@example.com",
+            "password": "shit",
+            "name": "shitman",
+        }  # noqa
         res = self.client.post(CREATE_USER_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -71,7 +75,10 @@ class PublicUserApiTests(TestCase):
 
         create_user(**user_details)
 
-        payload = {"email": user_details["email"], "password": user_details["password"]} # noqa
+        payload = {
+            "email": user_details["email"],
+            "password": user_details["password"],
+        }  # noqa
         res = self.client.post(TOKEN_URL, payload)
 
         self.assertIn("token", res.data)
@@ -79,7 +86,9 @@ class PublicUserApiTests(TestCase):
 
     def test_create_token_bad_credentials(self):
         """Test returns error if credentials are wrong"""
-        create_user(email="shitman@example.com", password="Shitman1234", name="shitman") # noqa
+        create_user(
+            email="shitman@example.com", password="Shitman1234", name="shitman"
+        )  # noqa
 
         payload = {"email": "shitman@example.com", "password": "badpass"}
 
@@ -108,9 +117,7 @@ class PrivateUserApiTests(TestCase):
 
     def setUp(self):
         self.user = create_user(
-            email="shitman@example.com",
-            password="Shitman2121!",
-            name="Shitman"
+            email="shitman@example.com", password="Shitman2121!", name="Shitman"
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -120,8 +127,10 @@ class PrivateUserApiTests(TestCase):
 
         res = self.client.get(ME_URL)
 
-        self.assertEqual(res.status_code, status.HTTP_200_OK) # noqa
-        self.assertEqual(res.data, {"name": self.user.name, "email": self.user.email}) # noqa
+        self.assertEqual(res.status_code, status.HTTP_200_OK)  # noqa
+        self.assertEqual(
+            res.data, {"name": self.user.name, "email": self.user.email}
+        )  # noqa
 
     def test_post_me_not_allowed(self):
         """Test POST method for me endpoint is not allowed"""
