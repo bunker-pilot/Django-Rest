@@ -84,7 +84,7 @@ class RecipeDetailSerializer(RecipeSerializer):
         fields = RecipeSerializer.Meta.fields + ["description", "image"]
 
 
-# it's best practive to have one api for each form of data beign sent
+# it's best practive to have one api for each form of data being sent
 class RecipeImageSerializer(serializers.ModelSerializer):
     """Serializer for uploading images to recipes"""
 
